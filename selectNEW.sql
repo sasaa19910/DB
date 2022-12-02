@@ -1,101 +1,85 @@
+SELECT name, COUNT(artist_id)                                1
+  FROM genres g
+  LEFT JOIN artistsgenres a ON g.id = a.genre_id
+ GROUP BY name;
 
 
-SELECT COUNT(artist_id)
-  FROM artistsgenres a;
+SELECT al.name, count(tr.name)                                  2
+  FROM albums al
+  JOIN tracks tr 
+  ON al.id = tr.album_id 
+ WHERE year BETWEEN 2019 
+   AND 2020
+ GROUP BY al.name;
 
-
-SELECT COUNT(tr.name) 
+SELECT al.name, ROUND(AVG(duration), 1)                      3
   FROM albums al
   JOIN tracks tr 
   ON al.id = tr.album_id
- WHERE year between 2019 
-   AND 2020;
-
-
-SELECT al.name, avg(tr.duration) 
-  FROM albums al
-  JOIN tracks tr 
-  ON tr.album_id = al.id
  GROUP BY al.name;
 
 
-SELECT ar.name 
-  FROM artistalbum a
-  JOIN artists ar 
-  ON ar.id = a.artist_id
+SELECT ar.name                                               4
+  FROM artists ar
   JOIN albums al 
-  ON al.id = a.album_id
+    ON ar.id = al.id 
  WHERE YEAR != (
 	SELECT YEAR 
-	  FROM albums
-	 WHERE YEAR = 2020)
+	FROM albums
+	WHERE YEAR = 2020
+);
+
+SELECT col.name                                                5
+  FROM collections col
+  JOIN tracks tr 
+    ON col.id = tr.id 
+  JOIN albums al 
+    ON tr.album_id = al.id 
+  JOIN artists ar 
+    ON al.id = ar.id
+ WHERE ar.name 
+  LIKE 'Nirvana';
+
+SELECT al.name                                                 6
+  FROM albums al
+  JOIN artistalbum aa 
+    ON al.id = aa.album_id 
+  JOIN artistsgenres ag 
+    ON aa.artist_id  = ag.artist_id
+ GROUP BY al.name
+  HAVING count(ag.genre_id) >= 2;
+
+SELECT tr.name, ct.collection_id                                   7
+  FROM tracks tr
+  LEFT JOIN collectionstracks ct 
+    ON tr.id = ct.track_id 
+ WHERE ct.collection_id 
+   IS NULL;
+
+SELECT ar.name                                                    8
+  FROM artists ar
+  JOIN albums al 
+    ON ar.id = al.id
+  JOIN tracks tr 
+    ON al.id = tr.album_id 
+ WHERE tr.duration <= (
+	SELECT min(tracks.duration) 
+	  FROM tracks
+)
  GROUP BY ar.name;
 
 
-SELECT col.name 
-  FROM collections col
+SELECT al.name                                        9
+  FROM albums al
   JOIN tracks tr 
-  ON col.id = tr.id 
-  JOIN albums al
-  ON tr.album_id = al.id 
-  JOIN artists ar
-  ON al.id = ar.id
- WHERE ar.name
-  LIKE 'Nirvana';
-
-
-SELECT a.name, COUNT(*)
-  FROM artistsgenres arg
-  JOIN artists ar
-  ON ar.id = arg.artist_id
-  JOIN genres g
-  ON g.id = arg.genre_id
-  JOIN albums a
-  ON a.id = ar.id
-  GROUP BY a.name
-  HAVING COUNT(*) > 1
-  ORDER BY COUNT(*) DESC;
-
-
-SELECT t.name 
-  FROM tracks t
-  LEFT JOIN collectionstracks c 
-  ON c.track_id = t.id
- WHERE c.collection_id IS NULL
- GROUP BY t.name;
-
-
-SELECT ar.name, MIN(t.duration)
-  FROM artists ar
-  JOIN tracks t
-  ON t.id  = ar.id
-  JOIN albums a 
-  ON a.id = t.album_id
- WHERE t.duration <= (
- SELECT min(tracks.duration) 
-   FROM tracks)
-  GROUP BY ar.name;
-
-
-SELECT ar.name 
-  FROM artists ar
-  JOIN albums al 
-  ON ar.id = al.id
-  JOIN tracks tr
-  ON al.id = tr.album_id 
- WHERE tr.duration <= (
- SELECT min(tracks.duration)
-   FROM tracks)
-  GROUP BY ar.name;
-
-
-SELECT a.name, count(t.album_id)
-  FROM albums a
-  JOIN tracks t 
-  ON a.id = t.album_id
-  GROUP BY a.name
-  HAVING COUNT(t.album_id) = 1;
-
-
+    ON al.id = tr.album_id 
+ GROUP BY al.name
+  HAVING count(tr.id) <= (
+	SELECT count(tr.id) FROM albums al
+	JOIN tracks tr ON al.id = tr.album_id
+	GROUP BY al.name
+	ORDER BY count(tr.id)
+	LIMIT 1
+);
 
 
